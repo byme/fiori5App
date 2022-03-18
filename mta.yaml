@@ -1,0 +1,69 @@
+_schema-version: "3.2"
+ID: fioriAbap
+description: Fiori elements app
+version: 0.0.1
+modules:
+- name: fioriAbap-dest-content
+  type: com.sap.application.content
+  requires:
+  - name: fioriAbap-dest-srv
+    parameters:
+      content-target: true
+  - name: fioriAbap-repo-host
+    parameters:
+      service-key:
+        name: fioriAbap-repo-host-key
+  - name: fioriAbap-uaa
+    parameters:
+      service-key:
+        name: fioriAbap-uaa-key
+  parameters:
+    content:
+      instance:
+        destinations:
+        - Name: fioriAbap_repo_host
+          ServiceInstanceName: fioriAbap-html5-srv
+          ServiceKeyName: fioriAbap-repo-host-key
+          sap.cloud.service: fioriAbap
+        - Authentication: OAuth2UserTokenExchange
+          Name: fioriAbap_uaa
+          ServiceInstanceName: fioriAbap-xsuaa-srv
+          ServiceKeyName: fioriAbap-uaa-key
+          sap.cloud.service: fioriAbap
+        existing_destinations_policy: update
+  build-parameters:
+    no-source: true
+resources:
+- name: fioriAbap-uaa
+  type: org.cloudfoundry.managed-service
+  parameters:
+    path: ./xs-security.json  
+    service: xsuaa
+    service-name: fioriAbap-xsuaa-srv
+    service-plan: application
+- name: fioriAbap-dest-srv
+  type: org.cloudfoundry.managed-service
+  parameters:
+    config:
+      HTML5Runtime_enabled: true
+      version: 1.0.0
+      init_data:
+        instance:
+          existing_destinations_policy: update
+          destinations:
+          - Name: ui5
+            Type: HTTP
+            URL: https://ui5.sap.com
+            ProxyType: Internet
+            Authentication: NoAuthentication
+    service: destination
+    service-name: fioriAbap-dest-srv
+    service-plan: lite
+- name: fioriAbap-repo-host
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: html5-apps-repo
+    service-name: fioriAbap-html5-srv
+    service-plan: app-host
+parameters:
+  deploy_mode: html5-repo
